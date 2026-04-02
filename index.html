@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>詳細については、ワンクリックでLINE IDをコピーしてください。</title>
+  <style>
+    * {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      box-sizing: border-box;
+    }
+
+    #page-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .chat-bubble {
+      border-radius: 18px;
+    }
+
+    .chat-bubble.agent {
+      border-top-left-radius: 4px;
+    }
+
+    .chat-bubble.user {
+      border-top-right-radius: 4px;
+    }
+
+    /* 通用弹窗遮罩层 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    /* 通用弹窗主体 */
+    .modal-content {
+      background: #fff;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      padding: 40px 30px;
+      position: relative;
+      text-align: center;
+      animation: modalShow 0.3s ease-out;
+    }
+
+    @keyframes modalShow {
+      from {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* 通用关闭按钮 */
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      font-size: 30px;
+      color: #333;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #666;
+    }
+
+    /* ===== 微信主弹窗样式 ===== */
+    .wechat-modal .modal-title {
+      font-size: 19px;
+      font-weight: bold;
+      color: #000;
+      width: 90%;
+      margin-bottom: 35px;
+      line-height: 1.4;
+    }
+
+    .wechat-modal .wechat-box {
+      background: #f8f8f8;
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .wechat-modal .copy-btn {
+      background: #1aad17;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      width: 139px;
+      height: 43px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .wechat-modal .copy-btn:hover {
+      background: #06ae56;
+    }
+
+    /* ===== 复制成功弹窗样式（完全还原图片） ===== */
+    .success-modal .check-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      border: 6px solid #1aad17;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .success-modal .check-icon::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 30px;
+      height: 50px;
+      border: solid #1aad17;
+      border-width: 0 6px 6px 0;
+      transform: translate(-50%, -60%) rotate(45deg);
+    }
+
+    .success-modal .success-title {
+      font-size: 19px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 20px;
+    }
+
+    .success-modal .wechat-info {
+      font-size: 1.8rem;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .success-modal .desc-text {
+      font-size: 1.6rem;
+      color: #666;
+      margin-bottom: 35px;
+    }
+
+    .success-modal .confirm-btn {
+      background: #1aad17;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      width: 139px;
+      height: 43px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .success-modal .confirm-btn:hover {
+      background: #06ae56;
+    }
+
+    /* 原页面样式保留 */
+    *,
+    ::before,
+    ::after {
+      --tw-border-spacing-x: 0;
+      --tw-border-spacing-y: 0;
+      --tw-translate-x: 0;
+      --tw-translate-y: 0;
+      --tw-rotate: 0;
+      --tw-skew-x: 0;
+      --tw-skew-y: 0;
+      --tw-scale-x: 1;
+      --tw-scale-y: 1;
+      --tw-pan-x: ;
+      --tw-pan-y: ;
+      --tw-pinch-zoom: ;
+      --tw-scroll-snap-strictness: proximity;
+      --tw-gradient-from-position: ;
+      --tw-gradient-via-position: ;
+      --tw-gradient-to-position: ;
+      --tw-ordinal: ;
+      --tw-slashed-zero: ;
+      --tw-numeric-figure: ;
+      --tw-numeric-spacing: ;
+      --tw-numeric-fraction: ;
+      --tw-ring-inset: ;
+      --tw-ring-offset-width: 0px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-color: rgb(59 130 246 / 0.5);
+      --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-ring-shadow: 0 0 #0000;
+      --tw-shadow: 0 0 #0000;
+      --tw-shadow-colored: 0 0 #0000;
+      --tw-blur: ;
+      --tw-brightness: ;
+      --tw-contrast: ;
+      --tw-grayscale: ;
+      --tw-hue-rotate: ;
+      --tw-invert: ;
+      --tw-saturate: ;
+      --tw-sepia: ;
+      --tw-drop-shadow: ;
+      --tw-backdrop-blur: ;
+      --tw-backdrop-brightness: ;
+      --tw-backdrop-contrast: ;
+      --tw-backdrop-grayscale: ;
+      --tw-backdrop-hue-rotate: ;
+      --tw-backdrop-invert: ;
+      --tw-backdrop-opacity: ;
+      --tw-backdrop-saturate: ;
+      --tw-backdrop-sepia: ;
+      --tw-contain-size: ;
+      --tw-contain-layout: ;
+      --tw-contain-paint: ;
+      --tw-contain-style:
+    }
+
+    ::backdrop {
+      --tw-border-spacing-x: 0;
+      --tw-border-spacing-y: 0;
+      --tw-translate-x: 0;
+      --tw-translate-y: 0;
+      --tw-rotate: 0;
+      --tw-skew-x: 0;
+      --tw-skew-y: 0;
+      --tw-scale-x: 1;
+      --tw-scale-y: 1;
+      --tw-pan-x: ;
+      --tw-pan-y: ;
+      --tw-pinch-zoom: ;
+      --tw-scroll-snap-strictness: proximity;
+      --tw-gradient-from-position: ;
+      --tw-gradient-via-position: ;
+      --tw-gradient-to-position: ;
+      --tw-ordinal: ;
+      --tw-slashed-zero: ;
+      --tw-numeric-figure: ;
+      --tw-numeric-spacing: ;
+      --tw-numeric-fraction: ;
+      --tw-ring-inset: ;
+      --tw-ring-offset-width: 0px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-color: rgb(59 130 246 / 0.5);
+      --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-ring-shadow: 0 0 #0000;
+      --tw-shadow: 0 0 #0000;
+      --tw-shadow-colored: 0 0 #0000;
+      --tw-blur: ;
+      --tw-brightness: ;
+      --tw-contrast: ;
+      --tw-grayscale: ;
+      --tw-hue-rotate: ;
+      --tw-invert: ;
+      --tw-saturate: ;
+      --tw-sepia: ;
+      --tw-drop-shadow: ;
+      --tw-backdrop-blur: ;
+      --tw-backdrop-brightness: ;
+      --tw-backdrop-contrast: ;
+      --tw-backdrop-grayscale: ;
+      --tw-backdrop-hue-rotate: ;
+      --tw-backdrop-invert: ;
+      --tw-backdrop-opacity: ;
+      --tw-backdrop-saturate: ;
+      --tw-backdrop-sepia: ;
+      --tw-contain-size: ;
+      --tw-contain-layout: ;
+      --tw-contain-paint: ;
+      --tw-contain-style:
+    }
+
+    /* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */
+    *,
+    ::after,
+    ::before {
+      box-sizing: border-box;
+      border-width: 0;
+      border-style: solid;
+      border-color: #e5e7eb
+    }
+
+    ::after,
+    ::before {
+      --tw-content: ''
+    }
+
+    :host,
+    html {
+      line-height: 1.5;
+      -webkit-text-size-adjust: 100%;
+      -moz-tab-size: 4;
+      tab-size: 4;
+      font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      font-feature-settings: normal;
+      font-variation-settings: normal;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    body {
+      margin: 0;
+      line-height: inherit
+    }
+
+    hr {
+      height: 0;
+      color: inherit;
+      border-top-width: 1px
+    }
+
+    abbr:where([title]) {
+      -webkit-text-decoration: underline dotted;
+      text-decoration: underline dotted
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-size: inherit;
+      font-weight: inherit
+    }
+
+    a {
+      color: inherit;
+      text-decoration: inherit
+    }
+
+    b,
+    strong {
+      font-weight: bolder
+    }
+
+    code,
+    kbd,
+    pre,
+    samp {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-feature-settings: normal;
+      font-variation-settings: normal;
+      font-size: 1em
+    }
+
+    small {
+      font-size: 80%
+    }
+
+    sub,
+    sup {
+      font-size: 75%;
+      line-height: 0;
+      position: relative;
+      vertical-align: baseline
+    }
+
+    sub {
+      bottom: -.25em
+    }
+
+    sup {
+      top: -.5em
+    }
+
+    table {
+      text-indent: 0;
+      border-color: inherit;
+      border-collapse: collapse
+    }
+
+    button,
+    input,
+    optgroup,
+    select,
+    textarea {
+      font-family: inherit;
+      font-feature-settings: inherit;
+      font-variation-settings: inherit;
+      font-size: 100%;
+      font-weight: inherit;
+      line-height: inherit;
+      letter-spacing: inherit;
+      color: inherit;
+      margin: 0;
+      padding: 0
+    }
+
+    button,
+    select {
+      text-transform: none
+    }
+
+    button,
+    input:where([type=button]),
+    input:where([type=reset]),
+    input:where([type=submit]) {
+      -webkit-appearance: button;
+      background-color: transparent;
+      background-image: none
+    }
+
+    :-moz-focusring {
+      outline: auto
+    }
+
+    :-moz-ui-invalid {
+      box-shadow: none
+    }
+
+    progress {
+      vertical-align: baseline
+    }
+
+    ::-webkit-inner-spin-button,
+    ::-webkit-outer-spin-button {
+      height: auto
+    }
+
+    [type=search] {
+      -webkit-appearance: textfield;
+      outline-offset: -2px
+    }
+
+    ::-webkit-search-decoration {
+      -webkit-appearance: none
+    }
+
+    ::-webkit-file-upload-button {
+      -webkit-appearance: button;
+      font: inherit
+    }
+
+    summary {
+      display: list-item
+    }
+
+    blockquote,
+    dd,
+    dl,
+    figure,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    hr,
+    p,
+    pre {
+      margin: 0
+    }
+
+    fieldset {
+      margin: 0;
+      padding: 0
+    }
+
+    legend {
+      padding: 0
+    }
+
+    menu,
+    ol,
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0
+    }
+
+    dialog {
+      padding: 0
+    }
+
+    textarea {
+      resize: vertical
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      opacity: 1;
+      color: #9ca3af
+    }
+
+    [role=button],
+    button {
+      cursor: pointer
+    }
+
+    :disabled {
+      cursor: default
+    }
+
+    audio,
+    canvas,
+    embed,
+    iframe,
+    img,
+    object,
+    svg,
+    video {
+      display: block;
+      vertical-align: middle
+    }
+
+    img,
+    video {
+      max-width: 100%;
+      height: auto
+    }
+
+    [hidden]:where(:not([hidden=until-found])) {
+      display: none
+    }
+
+    .mx-auto {
+      margin-left: auto;
+      margin-right: auto
+    }
+
+    .min-h-screen {
+      min-height: 100vh
+    }
+
+    .max-w-md {
+      max-width: 28rem
+    }
+
+    .bg-slate-100 {
+      --tw-bg-opacity: 1;
+      background-color: rgb(241 245 249 / var(--tw-bg-opacity, 1))
+    }
+
+    .bg-white {
+      --tw-bg-opacity: 1;
+      background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1))
+    }
+
+    .p-8 {
+      padding: 2rem
+    }
+
+    .text-center {
+      text-align: center
+    }
+
+    .text-2xl {
+      font-size: 1.5rem;
+      line-height: 2rem
+    }
+
+    .font-bold {
+      font-weight: 700
+    }
+
+    .text-slate-400 {
+      --tw-text-opacity: 1;
+      color: rgb(148 163 184 / var(--tw-text-opacity, 1))
+    }
+
+    .shadow-lg {
+      --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)
+    }
+
+    /* 触发按钮样式（可自定义） */
+    .open-modal-btn {
+      margin: 20px auto;
+      display: block;
+      background: #07c160;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <!-- 微信主弹窗 -->
+  <div class="modal-overlay wechat-modal" id="wechatModal">
+    <div class="modal-content">
+      <span class="modal-close" id="closeWechatModal">&times;</span>
+      <h2 class="modal-title">当社の製品について詳しく知るには、LINEで友だち追加してください。</h2>
+      <div class="wechat-box">LINE ID: @643tqpny</div>
+      <button class="copy-btn" id="copyWechatBtn">LINE IDをコピー</button>
+    </div>
+  </div>
+
+  <!-- 复制成功弹窗（完全还原图片） -->
+  <div class="modal-overlay success-modal" id="successModal">
+    <div class="modal-content">
+      <span class="modal-close" id="closeSuccessModal">&times;</span>
+      <div style="display: flex; justify-content: center;"><img src="./index/wechat_success_icon.png" style="width: 43px; height: 43px;"></div>
+      <h2 class="success-title">コピー成功</h2>
+      <!-- <div class="wechat-info">微信号: shep889</div>
+      <div class="desc-text">添加微信好友，详细了解产品</div> -->
+      <button class="confirm-btn" id="confirmSuccessBtn">分かりました</button>
+    </div>
+  </div>
+
+  <div id="page-container" class="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+    <div data-module-id="mod_1775136427039" data-module-type="hero">
+      <div
+        style="margin:12px;background:linear-gradient(135deg,#1af50a,#1af50acc);width:auto;height:auto;min-height:200px;border-radius:0px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative">
+        <div style="position:relative;z-index:1;text-align:center;padding:24px;color:#fff">
+          <h1 class="text-2xl font-bold">詳細については、ワンクリックでLINE IDをコピーしてください。</h1>
+        </div>
+      </div>
+    </div>
+
+    <div data-module-id="mod_1775136431536" data-module-type="copytext">
+      <div style="padding:12px;margin-top:0px;margin-bottom:0px;">
+        <div style="background:#0df109;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+          <div style="flex:1;font-size:17px;color:#0f0f0f;word-break:break-all;line-height:1.5;">@643tqpny</div><button
+            id="ct_qposlwc7" data-ct="%40643tqpny" data-ok="✅正常にコピーされました"
+            style="flex-shrink: 0; background: rgb(250, 5, 42); color: rgb(255, 255, 255); border: none; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; opacity: 1;"
+            data-btn-index="1" data-btn-text="クリックしてLINE IDをコピー" data-module-id="mod_1775136431536"
+            data-module-type="copytext" data-btn-in-module="1">正常にコピーされました</button>
+        </div>
+      </div>
+    </div>
+    <div data-module-id="mod_1775140707356" data-module-type="hero">
+      <div
+        style="background-color:#ffffff;width:100%;min-height:100vh;border-radius:32px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative">
+        <img src="./index/tu.jpg"
+          style="width:100%;height:100%;object-fit:cover; border-radius:32px;">
+        <!-- <div style="position:absolute;top:0;left:0;width:100%;height:100%; border-radius:32px; background:rgba(0,0,0,0.3)"></div> -->
+        <!-- <div style="position:relative;z-index:1;text-align:center;padding:24px;color:#fff">
+          <h1 class="text-2xl font-bold"></h1>
+        </div> -->
+      </div>
+    </div>
+    <div style="position: relative; height: 100px;"></div>
+    <div data-module-id="mod_1775140777577" data-module-type="copytext">
+      <div style="padding:12px;margin-top:0px;margin-bottom:0px;     position: fixed;
+    bottom: 0px;
+    left: 0;
+    right: 0;">
+        <div style="background:#0ced39;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+          <div style="flex:1;font-size:17px;color:#171617;word-break:break-all;line-height:1.5;">@643tqpny </div><button
+            id="ct_lem6et8s" data-ct="%40643tqpny%20" data-ok="✅正常にコピーされました"
+            style="flex-shrink: 0; background: rgb(217, 18, 38); color: rgb(255, 255, 255); border: none; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; opacity: 1;"
+            data-btn-index="2" data-btn-text="クリックしてLINE IDをコピー" data-module-id="mod_1775140777577"
+            data-module-type="copytext" data-btn-in-module="1">正常にコピーされました</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 弹窗元素获取 =====
+    const wechatModal = document.getElementById('wechatModal');
+    const successModal = document.getElementById('successModal');
+    const openBtn = document.getElementById('ct_qposlwc7');
+    const openBtn2 = document.getElementById('ct_lem6et8s');
+    const closeWechatBtn = document.getElementById('closeWechatModal');
+    const closeSuccessBtn = document.getElementById('closeSuccessModal');
+    const confirmSuccessBtn = document.getElementById('confirmSuccessBtn');
+    const copyBtn = document.getElementById('copyWechatBtn');
+    const wechatId = '643tqpny';
+
+    // ===== 通用关闭弹窗函数 =====
+    function closeModal(modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+
+    // ===== 打开微信主弹窗 =====
+    openBtn.addEventListener('click', () => {
+      wechatModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+    openBtn2.addEventListener('click', () => {
+      wechatModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+
+    // ===== 关闭微信主弹窗 =====
+    closeWechatBtn.addEventListener('click', () => closeModal(wechatModal));
+    wechatModal.addEventListener('click', (e) => {
+      if (e.target === wechatModal) closeModal(wechatModal);
+    });
+
+    // ===== 关闭复制成功弹窗 =====
+    function closeSuccess() {
+      closeModal(successModal);
+      // 同时关闭微信主弹窗
+      closeModal(wechatModal);
+    }
+    closeSuccessBtn.addEventListener('click', closeSuccess);
+    confirmSuccessBtn.addEventListener('click', closeSuccess);
+    successModal.addEventListener('click', (e) => {
+      if (e.target === successModal) closeSuccess();
+    });
+
+    // ===== 复制微信号功能（弹出成功弹窗） =====
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(wechatId);
+      } catch (err) {
+        // 兼容低版本浏览器
+        const textarea = document.createElement('textarea');
+        textarea.value = wechatId;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      // 复制成功后，关闭主弹窗，打开成功弹窗
+      closeModal(wechatModal);
+      successModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+
+    // 兼容原页面的LINE复制按钮（保留原有功能）
+    document.querySelectorAll('[data-module-type="copytext"] button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const text = decodeURIComponent(this.dataset.ct);
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = this.textContent;
+          this.textContent = this.dataset.ok;
+          setTimeout(() => {
+            this.textContent = originalText;
+          }, 2000);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
